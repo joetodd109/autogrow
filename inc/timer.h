@@ -5,8 +5,7 @@
 #include "utl.h"
 
 extern void timer_init(void);
-extern void timer_delay(uint32_t time);
-extern uint32_t timer_get(void);
-extern void set_mems_read(void);
+extern void timer_delay(uint16_t time);
+extern void timer_reconfigure(uint16_t prescalar, uint16_t reload);
 
 #endif

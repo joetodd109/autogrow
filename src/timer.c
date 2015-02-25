@@ -4,56 +4,57 @@
  * @author  Joe Todd
  * @version
  * @date    January 2014
- * @brief   MIDI
+ * @brief   Autogrow
  *
   ******************************************************************************/
 
 #include "timer.h"
 
-static volatile uint32_t count = 0;
+static uint32_t timer;
 
 /* 
- * SYSCLK = 16MHz
- * TIM2CLK = 16MHz / 16000 = 1kHz
- * 1 second timer.
+ * SYSCLK = 250kHz
+ * TIM2CLK = 15.625kHz
  */
 extern void 
 timer_init(void) 
 {
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; 
+    RCC->APB1LPENR |= RCC_APB1LPENR_TIM2LPEN;   /* enable tim2 in sleep mode */
     
-    TIM2->PSC = 0x3E81;             /* 16000 prescalar */
+    TIM2->PSC = 0x7800;             /* 61440 prescalar not 62500? */
     TIM2->DIER |= TIM_DIER_UIE;     /* enable update interrupt */
-    TIM2->ARR = 0x06BD;             /* count to 1000 */
-    TIM2->CR1 |= TIM_CR1_ARPE       /* autoreload on */
-        | (TIM_CR1_CEN);            /* counter enabled */
-    TIM2->EGR = 1;                  /* trigger update event */
+    TIM2->ARR = 0xFFFF;             /* count to 65535 */
+    TIM2->CR1 |= TIM_CR1_ARPE;      /* autoreload on */
+    TIM2->EGR = TIM_EGR_UG;         /* trigger update event */
 
     utl_enable_irq(TIM2_IRQn);
-}
 
-extern uint32_t 
-timer_get(void)
-{
-    return count;
+    TIM2->CR1 |= TIM_CR1_CEN;       /* counter enabled */
 }
 
 extern void 
-timer_delay(uint32_t time) {
-    uint32_t start;
-    uint32_t timer;
-    uint32_t end;
+timer_delay(uint16_t time) {
+    uint16_t end;
 
-    start = timer_get();
-    end = start + time;
-
+    end = time + TIM2->CNT;
     while (timer < end) {
-        timer = timer_get();
+        timer = TIM2->CNT;
     }
+}
+
+extern void
+timer_reconfigure(uint16_t prescalar, uint16_t reload)
+{
+    TIM2->CR1 &= ~TIM_CR1_CEN;
+    TIM2->PSC = prescalar; 
+    TIM2->ARR = reload;
+    TIM2->EGR = TIM_EGR_UG;     /* update registers now */
+
+    TIM2->CR1 |= TIM_CR1_CEN;       /* counter enabled */
 }
 
 void TIM2_IRQHandler(void) 
 {
-    count++;
     TIM2->SR = 0x0;
 }

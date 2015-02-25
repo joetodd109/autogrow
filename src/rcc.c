@@ -15,11 +15,11 @@
 extern void
 clk_init(void)
 {
-    RCC->CR |= RCC_CR_HSION;
-
-    RCC->CFGR = RCC_CFGR_SWS_HSI;
-
-    RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSI;
-    RCC->CR |= RCC_CR_PLLON;
-    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);	
+    RCC->CFGR = (RCC_CFGR_SWS_HSE
+    	| RCC_CFGR_PPRE1_DIV16
+    	| RCC_CFGR_HPRE_DIV64
+    	| RCC_CFGR_MCO1_1);
+    RCC->PLLCFGR = 0x0;
+    RCC->CR = RCC_CR_HSEON;
+    while ((RCC->CR & RCC_CR_HSERDY) != RCC_CR_HSERDY);	
 }

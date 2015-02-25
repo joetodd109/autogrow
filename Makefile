@@ -1,7 +1,4 @@
-# put your *.o targets here, make should handle the rest!
-
-SRCS = main.c system_stm32f4xx.c \
-		iox.c timer.c utl.c adc.c
+SRCS = main.c iox.c timer.c utl.c adc.c rcc.c
 
 PROJ_NAME=autogrow
 

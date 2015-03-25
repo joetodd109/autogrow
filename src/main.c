@@ -83,7 +83,7 @@ int main(void)
 #ifdef TESTING
         timer2_delay(2);     /* wait 2s */
         iox_led_on(false, false, false, false);
-        stepper_turn_cw(8);  /* test stepper motor */
+        stepper_turn_cw(125);  /* test stepper motor, turn for 2s */
         timer2_delay(2);     /* wait 2s */
         iox_led_on(false, false, false, true);
 #endif

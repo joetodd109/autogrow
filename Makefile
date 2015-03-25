@@ -1,4 +1,4 @@
-SRCS = main.c iox.c timer.c utl.c adc.c rcc.c
+SRCS = main.c iox.c timer.c utl.c adc.c rcc.c stepper.c
 
 PROJ_NAME=autogrow
 

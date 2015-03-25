@@ -13,6 +13,7 @@
 #include "timer.h"
 #include "iox.h"
 #include "adc.h"
+#include "stepper.h"
 
 #define BUFFERSIZE      128u
 #define MOIST_LEVEL     3000u
@@ -37,10 +38,13 @@ int main(void)
 {
     clk_init();
     iox_led_init();
-    timer_init();
+    timer2_init();
+    timer4_init();
     adc_init();
+    stepper_init();
 #ifndef TESTING
     uint32_t i = 0;
+    bool led = false;
 #endif
 
 #ifdef TESTING
@@ -56,29 +60,31 @@ int main(void)
             iox_type_pp, iox_speed_high, iox_pupd_none);
 
     while (1) {
+
 #ifndef TESTING
         timer_reconfigure(0x7800, 0xFFFF);
         iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, true); 
-        timer_delay(2);
+        timer2_delay(2);
         moisture[i] = adc_get_measurement();  
         iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, false);    
         if (moisture[i] > MOIST_LEVEL) {
             /* soil is too dry */
             iox_set_pin_state(VALVE_ON_PORT, VALVE_ON_PIN, true);
-            timer_delay(5);
+            timer2_delay(5);
             iox_set_pin_state(VALVE_ON_PORT, VALVE_ON_PIN, false);
         }
         i = (i + 1) % BUFFERSIZE;
         /* timer overflows in 24hours */
-        timer_reconfigure(0xF000, HOLD_TIME);
+        timer2_reconfigure(0xF000, HOLD_TIME);
         /* sleep until timer overflows */
         __WFI();
 #endif
 
 #ifdef TESTING
-        timer_delay(2);     /* wait 2s */
+        timer2_delay(2);     /* wait 2s */
         iox_led_on(false, false, false, false);
-        timer_delay(2);     /* wait 2s */
+        stepper_turn_cw(8);  /* test stepper motor */
+        timer2_delay(2);     /* wait 2s */
         iox_led_on(false, false, false, true);
 #endif
     }

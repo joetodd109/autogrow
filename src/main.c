@@ -26,66 +26,87 @@
 #define VALVE_ON_PIN    2u
 
 #define TESTING         /* testing mode */
+/* #define VALVE        not using valve */
 #define HOLD_TIME       86400u / 2u  /* one day */
 
 /* Prototypes -----------------------------------------------------------------*/
-#ifndef TESTING
 static uint16_t moisture[BUFFERSIZE] = {0};
-#endif
+
+/* 
+ * Turn on water flow for 'time' in ms.
+ */
+static void
+water_on(uint32_t time, uint16_t turns)
+{
+    timer_reconfigure(0x001e, 0xFFFF); /* timer ticks at 1ms */
+    timer_delay(time);     /* wait 2s */
+    iox_led_on(false, false, false, true);
+    stepper_turn_cw(turns);  /* test stepper motor, turn for 2s */
+    timer_delay(time);     /* wait 2s */
+    iox_led_on(false, false, false, false);
+    stepper_turn_acw(turns);
+}
 
 /* Main -----------------------------------------------------------------------*/
 int main(void)
 {
     clk_init();
     iox_led_init();
-    timer2_init();
-    timer4_init();
+    timer_init();
     adc_init();
     stepper_init();
-#ifndef TESTING
-    uint32_t i = 0;
-    bool led = false;
-#endif
 
-#ifdef TESTING
-    iox_led_on(false, false, false, true);
-#endif
+    uint32_t i = 0;
+
     iox_configure_pin(SENSOR_IN_PORT, SENSOR_IN_PIN, iox_mode_analog, 
             iox_type_pp, iox_speed_low, iox_pupd_none);
     iox_configure_pin(SENSOR_EN_PORT, SENSOR_EN_PIN, iox_mode_out,
             iox_type_pp, iox_speed_low, iox_pupd_down);
     iox_configure_pin(VALVE_ON_PORT, VALVE_ON_PIN, iox_mode_out,
             iox_type_pp, iox_speed_low, iox_pupd_down);
+    /* Test clock frequency 
     iox_configure_pin(iox_port_a, 8, iox_mode_af,
             iox_type_pp, iox_speed_high, iox_pupd_none);
+    */
 
     while (1) {
-
-#ifndef TESTING
         timer_reconfigure(0x7800, 0xFFFF);
         iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, true); 
-        timer2_delay(2);
+        timer_delay(2);
         moisture[i] = adc_get_measurement();  
         iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, false);    
         if (moisture[i] > MOIST_LEVEL) {
-            /* soil is too dry */
+            /* 
+             * Soil is too dry!
+             */
+#ifdef VALVE
             iox_set_pin_state(VALVE_ON_PORT, VALVE_ON_PIN, true);
-            timer2_delay(5);
+            timer_delay(5);
             iox_set_pin_state(VALVE_ON_PORT, VALVE_ON_PIN, false);
+#else
+            /* 
+             * Water flow on for 2s 
+             */
+            water_on(5000, 450);
+#endif
         }
         i = (i + 1) % BUFFERSIZE;
-        /* timer overflows in 24hours */
-        timer2_reconfigure(0xF000, HOLD_TIME);
-        /* sleep until timer overflows */
-        __WFI();
-#endif
 
 #ifdef TESTING
-        timer2_delay(2);     /* wait 2s */
-        iox_led_on(false, false, false, false);
-        stepper_turn_cw(125);  /* test stepper motor, turn for 2s */
-        timer2_delay(2);     /* wait 2s */
-        iox_led_on(false, false, false, true);
+        /* 
+         * Just wait 2secs if testing 
+         */
+        timer_reconfigure(0x7800, 0xFFFF);
+        timer_delay(2);
+#else
+        /* 
+         * Else timer overflows in 24hours
+         */
+        timer_reconfigure(0xF000, HOLD_TIME);
+        /* 
+         * Sleep until timer overflows 
+         */
+        __WFI();
 #endif
     }
 }

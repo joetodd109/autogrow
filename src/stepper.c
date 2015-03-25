@@ -78,9 +78,9 @@ stepper_reset(void)
 }
 
 extern void
-stepper_turn_cw(uint8_t turns)
+stepper_turn_cw(uint16_t turns)
 {
-	uint8_t i;
+	uint32_t i;
 
 	stepper_reset();
 
@@ -90,9 +90,9 @@ stepper_turn_cw(uint8_t turns)
 }
 
 extern void
-stepper_turn_acw(uint8_t turns)
+stepper_turn_acw(uint16_t turns)
 {
-	uint8_t i;
+	uint32_t i;
 
 	stepper_reset();
 
@@ -106,6 +106,8 @@ stepper_do_turns(stepper_dir_t dir)
 {
 	uint8_t i, j, s;
 
+	timer_reconfigure(0x001e, 0xFFFF);	/* timer ticks at 1ms */
+
 	/* 1/2 phase control */
 	for (j = 0; j < 2; j++) {
 		/* initialise state machine */
@@ -117,7 +119,7 @@ stepper_do_turns(stepper_dir_t dir)
 			iox_set_pin_state(PINK_PORT, PINK_PIN, stepper_st[s].pnk);
 			iox_set_pin_state(BLUE_PORT, BLUE_PIN, stepper_st[s].blu);
 
-			timer4_delay(1000u);
+			timer_delay(1u);
 			(dir == dir_cw) ? s++ : s--;
 		}
 	}

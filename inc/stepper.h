@@ -17,7 +17,7 @@
 #include "stm32f4xx.h"
 
 extern void stepper_init(void);
-extern void stepper_turn_cw(uint8_t turns);
-extern void stepper_turn_acw(uint8_t turns);
+extern void stepper_turn_cw(uint16_t turns);
+extern void stepper_turn_acw(uint16_t turns);
 
 #endif

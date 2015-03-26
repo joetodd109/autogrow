@@ -25,9 +25,10 @@
 #define VALVE_ON_PORT   iox_port_b
 #define VALVE_ON_PIN    2u
 
-#define TESTING         /* testing mode */
-/* #define VALVE        not using valve */
-#define HOLD_TIME       86400u / 2u  /* one day */
+//#define TESTING         /* testing mode */
+//#define VALVE           /* not using valve */
+//#define HOLD_TIME       86400u / 2u  /* one day */
+#define HOLD_TIME         86400u / 96u /* every 30 mins */
 
 /* Prototypes -----------------------------------------------------------------*/
 static uint16_t moisture[BUFFERSIZE] = {0};
@@ -38,11 +39,12 @@ static uint16_t moisture[BUFFERSIZE] = {0};
 static void
 water_on(uint32_t time, uint16_t turns)
 {
-    timer_reconfigure(0x001e, 0xFFFF); /* timer ticks at 1ms */
-    timer_delay(time);     /* wait 2s */
+    /* timer ticks at 1ms */
+    timer_reconfigure(0x001e, 0xFFFF); 
+    timer_delay(time); 
     iox_led_on(false, false, false, true);
-    stepper_turn_cw(turns);  /* test stepper motor, turn for 2s */
-    timer_delay(time);     /* wait 2s */
+    stepper_turn_cw(turns);
+    timer_delay(time);
     iox_led_on(false, false, false, false);
     stepper_turn_acw(turns);
 }
@@ -71,11 +73,11 @@ int main(void)
 
     while (1) {
         timer_reconfigure(0x7800, 0xFFFF);
-        iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, true); 
-        timer_delay(2);
-        moisture[i] = adc_get_measurement();  
-        iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, false);    
-        if (moisture[i] > MOIST_LEVEL) {
+        //iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, true); 
+        timer_delay(3);
+        //moisture[i] = adc_get_measurement();  
+        //iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, false);    
+        //if (moisture[i] > MOIST_LEVEL) {
             /* 
              * Soil is too dry!
              */
@@ -85,11 +87,11 @@ int main(void)
             iox_set_pin_state(VALVE_ON_PORT, VALVE_ON_PIN, false);
 #else
             /* 
-             * Water flow on for 2s 
+             * Water flow on for 3s 
              */
-            water_on(5000, 450);
+            water_on(3000, 450);
 #endif
-        }
+        //}
         i = (i + 1) % BUFFERSIZE;
 
 #ifdef TESTING

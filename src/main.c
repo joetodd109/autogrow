@@ -25,10 +25,9 @@
 #define VALVE_ON_PORT   iox_port_b
 #define VALVE_ON_PIN    2u
 
-//#define TESTING         /* testing mode */
+//#define TESTING         /* not testing mode */
 //#define VALVE           /* not using valve */
-//#define HOLD_TIME       86400u / 2u  /* one day */
-#define HOLD_TIME         86400u / 96u /* every 30 mins */
+#define HOLD_TIME       86400u / 2u  /* one day - why are clock calculations out by 2? */
 
 /* Prototypes -----------------------------------------------------------------*/
 static uint16_t moisture[BUFFERSIZE] = {0};
@@ -73,11 +72,11 @@ int main(void)
 
     while (1) {
         timer_reconfigure(0x7800, 0xFFFF);
-        //iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, true); 
-        timer_delay(3);
-        //moisture[i] = adc_get_measurement();  
-        //iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, false);    
-        //if (moisture[i] > MOIST_LEVEL) {
+        iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, true); 
+        timer_delay(2);
+        moisture[i] = adc_get_measurement();  
+        iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, false);    
+        if (moisture[i] > MOIST_LEVEL) {
             /* 
              * Soil is too dry!
              */
@@ -87,11 +86,11 @@ int main(void)
             iox_set_pin_state(VALVE_ON_PORT, VALVE_ON_PIN, false);
 #else
             /* 
-             * Water flow on for 3s 
+             * Water flow on for 2.5s 
              */
-            water_on(3000, 450);
+            water_on(2500, 450);
 #endif
-        //}
+        }
         i = (i + 1) % BUFFERSIZE;
 
 #ifdef TESTING

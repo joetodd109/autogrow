@@ -34,7 +34,8 @@ timer_init(void)
 }
 
 extern void 
-timer_delay(uint16_t time) {
+timer_delay(uint16_t time) 
+{
     TIM2->CNT = 0;
     timer = TIM2->CNT;
     
@@ -57,8 +58,5 @@ timer_reconfigure(uint16_t prescalar, uint16_t reload)
 
 void TIM2_IRQHandler(void) 
 {
-    uint32_t sr;
-    sr = TIM2->SR;
-
     TIM2->SR = 0x0;
 }

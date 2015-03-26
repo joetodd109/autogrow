@@ -5,6 +5,12 @@
  * @date    January 2015
  * @brief   Autogrow
  *
+ * YL-38 Connections
+ *
+ *      BLUE - 3V
+ *      PURPLE - GND
+ *      GREY - PC1
+ *      WHITE - PC2
  ******************************************************************************/
 
 
@@ -74,8 +80,10 @@ int main(void)
         timer_reconfigure(0x7800, 0xFFFF);
         iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, true); 
         timer_delay(2);
-        moisture[i] = adc_get_measurement();  
-        iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, false);    
+        moisture[i] = adc_get_measurement();
+        timer_delay(1);
+        iox_set_pin_state(SENSOR_EN_PORT, SENSOR_EN_PIN, false);  
+
         if (moisture[i] > MOIST_LEVEL) {
             /* 
              * Soil is too dry!
